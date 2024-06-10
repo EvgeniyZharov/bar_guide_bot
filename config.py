@@ -6,8 +6,8 @@ MAIN_TOKEN = "6486870977:AAHeE8jNCvaGlmFfmWsLTHPzxhr0lKeAR40"
 # host = "185.212.148.117"
 # user = "user_4"
 # password = "passWORD1234!"
-host = "127.0.0.1"
-user = "root"
+host = "147.78.64.216"
+user = "user1"
 password = "pass123"
 
 USER_STATUS = {

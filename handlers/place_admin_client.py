@@ -64,7 +64,7 @@ class PAClient:
 
     def run_handler(self):
         dp.register_message_handler(self.to_admin,
-                                    commands=["to_admin"],
+                                    commands=["to_place_admin"],
                                     state="*")
 
         self.CreateAccount.run_handler()

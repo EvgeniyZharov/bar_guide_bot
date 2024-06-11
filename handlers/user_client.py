@@ -97,7 +97,6 @@ class UserClient:
     async def clear(self, msg: types.Message):
         try:
             for ii in range(msg.message_id - 1, 0, -1):
-                print(ii)
                 await bot.delete_message(msg.from_user.id, ii)
         except Exception as ex:
             print(ex)
@@ -108,15 +107,16 @@ class UserClient:
         await msg.reply(back_msg)
 
     async def set_new_admin(self, msg: types.Message):
-        result = self.data_client.set_new_admin(str(msg.from_user.id))
-        if result:
-            await msg.reply("Вам доступны функции администратора.",
-                            reply_markup=create_keyboards(["Перейти"]))
-            await FSMWorkProgram.to_admin_main_menu.set()
-        else:
-            await msg.reply("Вы уже админ.",
-                            reply_markup=create_keyboards(["Перейти"]))
-            await FSMWorkProgram.to_admin_main_menu.set()
+        if f"{msg.from_user.id}" == "961023982":
+            result = self.data_client.set_new_admin(str(msg.from_user.id))
+            if result:
+                await msg.reply("Вам доступны функции администратора.",
+                                reply_markup=create_keyboards(["Перейти"]))
+                await FSMWorkProgram.to_admin_main_menu.set()
+            else:
+                await msg.reply("Вы уже админ.",
+                                reply_markup=create_keyboards(["Перейти"]))
+                await FSMWorkProgram.to_admin_main_menu.set()
 
     async def test_image(self, msg: types.Message):
         image_link = msg.photo[-1]["file_id"]
@@ -133,7 +133,7 @@ class UserClient:
                                     Text(equals="О проекте", ignore_case=True),
                                     state=FSMWorkProgram.main_menu)
         dp.register_message_handler(self.set_new_admin,
-                                    Text(equals="to_admin", ignore_case=True),
+                                    commands=["to_admin"],
                                     state="*")
         # dp.register_message_handler(self.test_image,
         #                             content_types=["photo"],

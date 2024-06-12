@@ -7,6 +7,7 @@ from config import host, user, password
 
 class DataClient:
     DATABASE_NAME = "bar_guide_bot"
+    actual_version = "a0.1"
     TABLES = ["place_category", "announce_category", "user", "place",
               "announce", "menu", "review", "reserve", "place_admin"]
     drop_tables = ["place_admin", "reserve", "review", "menu", "announce",
@@ -56,14 +57,16 @@ class DataClient:
         request = f"""CREATE TABLE IF NOT EXISTS {self.DATABASE_NAME}.place_category (id int AUTO_INCREMENT PRIMARY KEY,
                       title VARCHAR(50) UNIQUE NOT NULL,
                       description TEXT,
-                      permission VARCHAR(20) DEFAULT '1') CHARACTER SET utf8;"""
+                      permission VARCHAR(20) DEFAULT '1',
+                      version VARCHAR(10) DEFAULT '{self.actual_version}') CHARACTER SET utf8;"""
         return self.create_table(request=request)
 
     def create_announce_category_table(self) -> bool:
         request = f"""CREATE TABLE IF NOT EXISTS {self.DATABASE_NAME}.announce_category (id int AUTO_INCREMENT PRIMARY KEY,
                       title VARCHAR(50) UNIQUE NOT NULL,
                       description TEXT,
-                      permission VARCHAR(20) DEFAULT '1'
+                      permission VARCHAR(20) DEFAULT '1',
+                      version VARCHAR(10) DEFAULT '{self.actual_version}'
                       ) CHARACTER SET utf8;"""
         return self.create_table(request=request)
 
@@ -80,7 +83,7 @@ class DataClient:
                       work_time VARCHAR(50) NOT NULL,
                       photo_id VARCHAR(200) NOT NULL,
                       permission VARCHAR(20) DEFAULT '1',
-
+                      version VARCHAR(10) DEFAULT '{self.actual_version}',
                       UNIQUE(title, address),
                       FOREIGN KEY(category_id) REFERENCES place_category(id) ON DELETE CASCADE ON UPDATE CASCADE)
                       CHARACTER SET utf8;"""
@@ -98,6 +101,7 @@ class DataClient:
                       time VARCHAR(50) NOT NULL,
                       photo_id VARCHAR(200),
                       permission VARCHAR(20) DEFAULT '1',
+                      version VARCHAR(10) DEFAULT '{self.actual_version}',
 
                       FOREIGN KEY(category_id) REFERENCES announce_category(id) ON DELETE CASCADE ON UPDATE CASCADE,
                       FOREIGN KEY(place_id) REFERENCES place(id) ON DELETE CASCADE ON UPDATE CASCADE)
@@ -107,18 +111,21 @@ class DataClient:
     def create_user_table(self) -> bool:
         default_photo_id = "AgACAgIAAxkBAAIPJmZnWTLWJbGxOPchUTogqbF7lwz5AALM3DEbCjU4S_zPWg7Po9C7AQADAgADeQADNQQ"
         request = f"""CREATE TABLE IF NOT EXISTS {self.DATABASE_NAME}.user (id int AUTO_INCREMENT PRIMARY KEY,
-                      status VARCHAR(50) NOT NULL,
+                      status VARCHAR(50) NOT NULL default 'base',
                       name VARCHAR(100) NOT NULL,
                       tg_id VARCHAR(50) UNIQUE NOT NULL,
                       tg_nick VARCHAR(100) UNIQUE NOT NULL,
                       photo_id VARCHAR(100) NOT NULL default '{default_photo_id}',
                       contact VARCHAR(20) NOT NULL,
                       age int,
+                      age_find VARCHAR(10),
                       interests VARCHAR(300),
                       prefer_place VARCHAR(300),
                       sex CHAR,
+                      sex_find CHAR,
                       description TEXT,
                       meet_enabled CHAR NOT NULL DEFAULT '0',
+                      version VARCHAR(10) DEFAULT '{self.actual_version}',
                       permissions VARCHAR(20) DEFAULT '1') CHARACTER SET utf8;"""
 
         return self.create_table(request=request)
@@ -131,6 +138,7 @@ class DataClient:
                       composition TEXT NOT NULL,
                       price VARCHAR(20) NOT NULL,
                       image_id VARCHAR(200) NOT NULL,
+                      version VARCHAR(10) DEFAULT '{self.actual_version}',
 
                       UNIQUE(title, place_id),
                       FOREIGN KEY(place_id) REFERENCES place(id) ON DELETE CASCADE ON UPDATE CASCADE)
@@ -145,6 +153,7 @@ class DataClient:
                       text TEXT NOT NULL,
                       rating int NOT NULL,  
                       permission VARCHAR(20) DEFAULT '1',
+                      version VARCHAR(10) DEFAULT '{self.actual_version}',
 
                       FOREIGN KEY(place_id) REFERENCES place(id) ON DELETE CASCADE ON UPDATE CASCADE)
                       CHARACTER SET utf8;"""
@@ -159,6 +168,7 @@ class DataClient:
                       time VARCHAR(50) NOT NULL,
                       user_number VARCHAR(20) NOT NULL,
                       permission VARCHAR(20) DEFAULT '1',
+                      version VARCHAR(10) DEFAULT '{self.actual_version}',
 
                       FOREIGN KEY(place_id) REFERENCES place(id) ON DELETE CASCADE ON UPDATE CASCADE)
                       CHARACTER SET utf8;"""
@@ -173,6 +183,7 @@ class DataClient:
                       user_id VARCHAR(50) NOT NULL, 
                       status_reg VARCHAR(10) NOT NULL,
                       last_connect VARCHAR(20) NOT NULL,
+                      version VARCHAR(10) DEFAULT '{self.actual_version}',
 
                       UNIQUE(place_id, user_id),
                       FOREIGN KEY(place_id) REFERENCES place(id) ON DELETE CASCADE ON UPDATE CASCADE)
@@ -182,6 +193,7 @@ class DataClient:
     def create_trip_table(self) -> bool:
         request = f"""CREATE TABLE IF NOT EXISTS {self.DATABASE_NAME}.trip (id int AUTO_INCREMENT PRIMARY KEY,
                       title int NOT NULL UNIQUE,
+                      version VARCHAR(10) DEFAULT '{self.actual_version}',
                       description TEXT)
                       CHARACTER SET utf8;"""
         return self.create_table(request=request)
@@ -192,6 +204,7 @@ class DataClient:
                       place_id int,
                       order_place int NOT NULL,
                       description TEXT NOT NULL,
+                      version VARCHAR(10) DEFAULT '{self.actual_version}',
 
                       FOREIGN KEY(trip_id) REFERENCES trip(id) ON DELETE CASCADE ON UPDATE CASCADE,
                       FOREIGN KEY(place_id) REFERENCES place(id) ON DELETE CASCADE ON UPDATE CASCADE)
@@ -203,6 +216,7 @@ class DataClient:
                       place_id int NOT NULL,
                       description TEXT NOT NULL,
                       dates VARCHAR(30) NOT NULL,
+                      version VARCHAR(10) DEFAULT '{self.actual_version}',
 
                       FOREIGN KEY(place_id) REFERENCES place(id) ON DELETE CASCADE ON UPDATE CASCADE)
                       CHARACTER SET utf8;"""
@@ -210,11 +224,14 @@ class DataClient:
 
     def create_workers_table(self) -> bool:
         request = f"""CREATE TABLE IF NOT EXISTS {self.DATABASE_NAME}.workers (id int AUTO_INCREMENT PRIMARY KEY,
-                      name VARCHAR(30) NOT NULL,
+                      name VARCHAR(30) NOT NULL UNIQUE,
                       place_id int NOT NULL,
                       tg_id VARCHAR(20) NOT NULL,
+                      user_id int NOT NULL,
+                      version VARCHAR(10) DEFAULT '{self.actual_version}',
 
-                      FOREIGN KEY(place_id) REFERENCES place(id) ON DELETE CASCADE ON UPDATE CASCADE)
+                      FOREIGN KEY(place_id) REFERENCES place(id) ON DELETE CASCADE ON UPDATE CASCADE,
+                      FOREIGN KEY(user_id) REFERENCES user(id) ON DELETE CASCADE ON UPDATE CASCADE)
                       CHARACTER SET utf8;"""
         return self.create_table(request=request)
 
@@ -223,6 +240,7 @@ class DataClient:
                       worker_id int NOT NULL,
                       place_id int NOT NULL,
                       payment float NOT NULL,
+                      version VARCHAR(10) DEFAULT '{self.actual_version}',
 
                       FOREIGN KEY(place_id) REFERENCES place(id) ON DELETE CASCADE ON UPDATE CASCADE,
                       FOREIGN KEY(worker_id) REFERENCES workers(id) ON DELETE CASCADE ON UPDATE CASCADE)
@@ -234,9 +252,78 @@ class DataClient:
                       user_id int NOT NULL,
                       purpose_user_id int NOT NULL,
                       status_match char NOT NULL,
+                      version VARCHAR(10) DEFAULT '{self.actual_version}',
 
                       FOREIGN KEY(user_id) REFERENCES user(id) ON DELETE CASCADE ON UPDATE CASCADE,
                       FOREIGN KEY(purpose_user_id) REFERENCES user(id) ON DELETE CASCADE ON UPDATE CASCADE)
+                      CHARACTER SET utf8;"""
+        return self.create_table(request=request)
+
+    def create_category_interest_table(self) -> bool:
+        request = f"""CREATE TABLE IF NOT EXISTS {self.DATABASE_NAME}.category_interest 
+                      (id int AUTO_INCREMENT PRIMARY KEY,
+                      version VARCHAR(10) DEFAULT '{self.actual_version}',
+                      title VARCHAR(50) NOT NULL UNIQUE)
+                      CHARACTER SET utf8;"""
+        return self.create_table(request=request)
+
+    def create_interest_table(self) -> bool:
+        request = f"""CREATE TABLE IF NOT EXISTS {self.DATABASE_NAME}.interest (id int AUTO_INCREMENT PRIMARY KEY,
+                      title VARCHAR(50) NOT NULL UNIQUE,
+                      category_id int NOT NULL,
+                      version VARCHAR(10) DEFAULT '{self.actual_version}',
+                      
+                      FOREIGN KEY(category_id) REFERENCES category_interest(id) ON DELETE CASCADE ON UPDATE CASCADE)
+                      CHARACTER SET utf8;"""
+        return self.create_table(request=request)
+
+    def create_user_interest_table(self) -> bool:
+        request = f"""CREATE TABLE IF NOT EXISTS {self.DATABASE_NAME}.user_interest (id int AUTO_INCREMENT PRIMARY KEY,
+                      interest_id int not null,
+                      user_id int not null,
+                      version VARCHAR(10) DEFAULT '{self.actual_version}',
+                      
+                      UNIQUE(user_id, interest_id),
+                      FOREIGN KEY(user_id) REFERENCES user(id) ON DELETE CASCADE ON UPDATE CASCADE,
+                      FOREIGN KEY(interest_id) REFERENCES interest(id) ON DELETE CASCADE ON UPDATE CASCADE)
+                      CHARACTER SET utf8;"""
+        return self.create_table(request=request)
+
+    def create_favorite_place_table(self) -> bool:
+        request = f"""CREATE TABLE IF NOT EXISTS {self.DATABASE_NAME}.favorite_place (id int AUTO_INCREMENT PRIMARY KEY,
+                      place_id int NOT NULL,
+                      user_id int NOT NULL,
+                      version VARCHAR(10) DEFAULT '{self.actual_version}',
+
+                      FOREIGN KEY(place_id) REFERENCES place(id) ON DELETE CASCADE ON UPDATE CASCADE,
+                      FOREIGN KEY(user_id) REFERENCES user(id) ON DELETE CASCADE ON UPDATE CASCADE)
+                      CHARACTER SET utf8;"""
+        return self.create_table(request=request)
+
+    def create_category_event_table(self) -> bool:
+        request = f"""CREATE TABLE IF NOT EXISTS {self.DATABASE_NAME}.category_event (id int AUTO_INCREMENT PRIMARY KEY,
+                      title VARCHAR(50) NOT NULL UNIQUE,
+                      version VARCHAR(10) DEFAULT '{self.actual_version}',
+                      description TEXT)
+                      CHARACTER SET utf8;"""
+        return self.create_table(request=request)
+
+    def create_event_table(self) -> bool:
+        image_link_default = "AgACAgIAAxkBAAISjmZosd86mjH3J7DmxM7QHrfrdRntAAJY1jEbdw5JSzR3wkznFzFEAQADAgADeQADNQQ"
+        request = f"""CREATE TABLE IF NOT EXISTS {self.DATABASE_NAME}.event (id int AUTO_INCREMENT PRIMARY KEY,
+                      category_id int NOT NULL,
+                      title VARCHAR(50) NOT NULL,
+                      description TEXT NOT NULL,
+                      time VARCHAR(50) NOT NULL,
+                      link VARCHAR(100) NOT NULL,
+                      image VARCHAR(150) NOT NULL DEFAULT '{image_link_default}',
+                      address VARCHAR(100) NOT NULL,
+                      contact VARCHAR(50) NOT NULL,
+                      permission VARCHAR(20) DEFAULT '1',
+                      version VARCHAR(10) DEFAULT '{self.actual_version}',
+
+                      UNIQUE(category_id, title, address),
+                      FOREIGN KEY(category_id) REFERENCES category_event(id) ON DELETE CASCADE ON UPDATE CASCADE)
                       CHARACTER SET utf8;"""
         return self.create_table(request=request)
 
@@ -255,7 +342,13 @@ class DataClient:
                   & self.create_discounts_table()
                   & self.create_workers_table()
                   & self.create_tips_table()
-                  & self.create_lovers_table())
+                  & self.create_lovers_table()
+                  & self.create_category_interest_table()
+                  & self.create_interest_table()
+                  & self.create_user_interest_table()
+                  & self.create_favorite_place_table()
+                  & self.create_category_event_table()
+                  & self.create_event_table())
         return result
 
     def drop_table(self, table_title: str):
@@ -411,6 +504,11 @@ class DataClient:
                   "VALUES (%s, %s, %s, %s, %s, %s, %s);"
         record = [(place_id, user_name, user_id, user_pass, login, status_reg, last_connect)]
         return self.set_new_data(request=request, record=record)
+
+    def set_worker_tip(self, worker_id: int, place_id: int, value_tip: int) -> bool:
+        request = f"""INSERT INTO {self.DATABASE_NAME}.tips (worker_id, place_id, payment) 
+                      values ({worker_id}, {place_id}, '{value_tip}');"""
+        return self.run_request(request=request)
 
     def get_table_info(self, table_title: str) -> dict:
         if table_title in self.TABLES:
@@ -626,6 +724,25 @@ class DataClient:
         result = self.get_list_values(request=request)
         return [len(result) > 0, result]
 
+    def get_category_interest_list(self) -> list:
+        request = f"SELECT title FROM {self.DATABASE_NAME}.category_interest;"
+        result = self.get_list_values(request=request)
+        return [len(result) > 0, result]
+
+    def get_interest_list(self, category_id: int, user_id: int) -> list:
+
+        request = f"SELECT title, if(i.id IN (SELECT interest_id FROM {self.DATABASE_NAME}.user_interest " \
+                  f"WHERE user_id = '{user_id}'), ':on', ':off') as res " \
+                  f"FROM {self.DATABASE_NAME}.interest as i " \
+                  f"WHERE category_id = '{category_id}';"
+        result = self.get_info(request=request)
+        return [len(result) > 0, result]
+
+    def get_worker_from_place_list(self, place_id: int) -> list:
+        request = f"SELECT name from {self.DATABASE_NAME}.workers WHERE place_id = '{place_id}';"
+        result = self.get_list_values(request=request, key="name")
+        return [len(result) > 0, result]
+
     def announce_category_exist(self, category_title: str) -> bool:
         request = f"SELECT * FROM {self.DATABASE_NAME}.announce_category WHERE title = '{category_title}';"
         return self.get_exist(request)
@@ -646,6 +763,23 @@ class DataClient:
         request = f"SELECT id FROM {self.DATABASE_NAME}.place WHERE title = '{title}';"
         return self.get_info(request=request)[0]["id"]
 
+    def get_category_interest_id(self, title: str) -> int:
+        request = f"SELECT id FROM {self.DATABASE_NAME}.category_interest WHERE title = '{title}';"
+        return self.get_info(request=request)[0]["id"]
+
+    def get_interest_id(self, title: str) -> int:
+        request = f"SELECT id FROM {self.DATABASE_NAME}.interest WHERE title = '{title}';"
+        return self.get_info(request=request)[0]["id"]
+
+    def get_user_id(self, tg_id: str) -> int:
+        request = f"SELECT id FROM {self.DATABASE_NAME}.user WHERE tg_id = '{tg_id}';"
+        return self.get_info(request=request)[0]["id"]
+
+    def get_worker_id(self, place_id: int, name: str) -> int:
+        request = f"SELECT id FROM {self.DATABASE_NAME}.workers " \
+                  f"WHERE place_id = '{place_id}' AND name = '{name}';"
+        return self.get_info(request=request)[0]["id"]
+
     def get_place_description(self, place_id: int) -> str:
         request = f"SELECT description FROM {self.DATABASE_NAME}.place WHERE id = '{place_id}';"
         return self.get_info(request=request)[0]["description"]
@@ -662,17 +796,30 @@ class DataClient:
         request = f"""
             select a.name, a.age, a.interests, a.prefer_place, a.description, a.photo_id, a.id
             from {self.DATABASE_NAME}.user as a, {self.DATABASE_NAME}.user as b 
-            where a.meet_enabled = '1' and a.sex != b.sex 
-            and b.tg_id = '961023982' and a.id not in 
+            where a.meet_enabled = '1' and a.sex = b.sex_find 
+            and b.tg_id = '{user_id}' and a.id not in 
             (select purpose_user_id from {self.DATABASE_NAME}.lovers where user_id = b.id) limit 1;"""
         result = self.get_info(request=request)
         return [len(result) > 0, result]
+
+    def get_user_tg_nick(self, user_id: int) -> str:
+        request = f"""select tg_nick from {self.DATABASE_NAME}.user where id = '{user_id}';"""
+        return self.get_info(request=request)[0]["tg_nick"]
+
+    def get_user_tg_id(self, user_id: int) -> str:
+        request = f"""select tg_id from {self.DATABASE_NAME}.user where id = '{user_id}';"""
+        return self.get_info(request=request)[0]["tg_id"]
 
     def set_user_reaction_meet(self, user_id: int, purpose_user_id: int, reaction: str) -> bool:
         request = f"""insert into {self.DATABASE_NAME}.lovers (user_id, purpose_user_id, status_match) 
             values ((select id from {self.DATABASE_NAME}.user where tg_id = '{user_id}'), '{purpose_user_id}', '{reaction}');"""
         return self.run_request(request=request)
 
+    def set_favorite_place(self, user_tg_id: str, place_id: int):
+        request = f"""
+                   insert into {self.DATABASE_NAME}.favorite_place (place_id, user_id) 
+                   values ('{place_id}', (select id from bar_guide_bot.user where tg_id = '{user_tg_id}'));"""
+        return self.run_request(request=request)
 
     # def check_permission(self, user_tg_id: str, perm_code: str) -> bool:
     #     request = f"SELECT permissions from {self.DATABASE_NAME}.user WHERE tg_id = '{user_tg_id}';"
@@ -701,14 +848,22 @@ class DataClient:
 
     def upd_user_info(self, user_id: str, element: str, new_value: str) -> bool:
         accessible_values = ["name", "photo_id", "contact", "age", "interests", "prefer_place",
-                             "description", "meet_enabled"]
+                             "description", "meet_enabled", "sex", "sex_find", "age_find"]
         if element in accessible_values:
-            request = f"with user_id as (select id from {self.DATABASE_NAME}.user where tg_id = '{user_id}') " \
-                      f"UPDATE {self.DATABASE_NAME}.user as u join user_id set {element} = '{new_value}' " \
-                      f"WHERE u.id = user_id.id;"
+            request = f"UPDATE {self.DATABASE_NAME}.user set {element} = '{new_value}' " \
+                      f"WHERE tg_id = '{user_id}';"
             return self.run_request(request=request)
         else:
             return False
+
+    def upd_user_interest_info(self, user_id: int, interest_id: int, action: bool = 1) -> bool:
+        if action:
+            request = f"INSERT INTO {self.DATABASE_NAME}.user_interest " \
+                      f"(interest_id, user_id) values ('{interest_id}', '{user_id}');"
+        else:
+            request = f"DELETE FROM {self.DATABASE_NAME}.user_interest " \
+                      f"WHERE user_id = '{user_id}' AND interest_id = '{interest_id}'"
+        return self.run_request(request=request)
 
     ################
 
@@ -744,4 +899,16 @@ class DataClient:
         request = f"select if(meet_enabled = '1', 1, 0) as res " \
                   f"from {self.DATABASE_NAME}.user " \
                   f"where tg_id = '{user_id}';"
+        return self.get_info(request=request)[0]["res"]
+
+    def check_meet_match(self, user_tg_id: str, purpose_user_id: int) -> bool:
+        request = f"""select id as res from {self.DATABASE_NAME}.lovers 
+                      where user_id = (select id from {self.DATABASE_NAME}.user where tg_id = '{user_tg_id}') 
+                      and purpose_user_id = '{purpose_user_id}';
+                   """
+        return len(self.get_info(request=request)) > 0
+
+    def check_meet_settings(self, tg_user_id: str) -> bool:
+        request = f"""SELECT IF(sex IS NOT NULL AND sex_find IS NOT NULL, 1, 0) as res from {self.DATABASE_NAME}.user 
+                      WHERE tg_id = '{tg_user_id}';"""
         return self.get_info(request=request)[0]["res"]

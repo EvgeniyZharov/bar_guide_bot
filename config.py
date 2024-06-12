@@ -6,6 +6,9 @@ MAIN_TOKEN = "6486870977:AAHeE8jNCvaGlmFfmWsLTHPzxhr0lKeAR40"
 # host = "185.212.148.117"
 # user = "user_4"
 # password = "passWORD1234!"
+# host = "127.0.0.1"
+# user = "root"
+# password = "pass123"
 host = "147.78.64.216"
 user = "user1"
 password = "pass123"
@@ -56,6 +59,9 @@ class FSMWorkProgram(StatesGroup):
     set_count_visitors = State()
     save_reserve = State()
     save_new_reserve = State()
+    choice_worker_for_tip = State()
+    set_worker_tip = State()
+    save_worker_tip = State()
 
     # Admin work
     to_admin_main_menu = State()
@@ -149,16 +155,17 @@ class FSMWorkProgram(StatesGroup):
     meet_save_enable = State()
     meet_change_name = State()
     meet_change_age = State()
-    meet_change_image = State()
-    meet_change_interests = State()
+    meet_change_photo = State()
+    meet_change_interests1 = State()
+    meet_change_interests2 = State()
     meet_change_description = State()
     meet_change_prefer_place = State()
     meet_show_profile = State()
     meet_system_settings = State()
     meet_change_sex_find = State()
-    meet_save_sex_find = State()
-    meet_change_age_find = State()
-    meet_save_age_find = State()
+    meet_change_sex_own = State()
+    meet_change_age_find1 = State()
+    meet_change_age_find2 = State()
     meet_form_watch = State()
 
     meet_show_forms = State()

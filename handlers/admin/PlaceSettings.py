@@ -198,7 +198,7 @@ class PlaceSettings:
             await state.reset_data()
             await FSMWorkProgram.admin_main_menu.set()
             await state.reset_data()
-        else:
+        elif msg.text == "Нет":
             category_list = self.data_client.get_place_category_list()
             await msg.answer("Начнем с начала, выберите категорию.",
                              reply_markup=create_keyboards(category_list, cancel_btn=True))

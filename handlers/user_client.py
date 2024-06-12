@@ -67,7 +67,7 @@ class UserClient:
         await self.clear(msg=msg)
         if self.data_client.user_is_admin(msg.from_user.id):
             await msg.reply("Привет, администратор!",
-                            reply_markup=create_keyboards(self.AdminClient.btn_admin_main_menu))
+                            reply_markup=create_keyboards(self.get_start_btn(user_id=msg.from_user.id)))
             await FSMWorkProgram.admin_main_menu.set()
         elif self.data_client.user_is_pa(msg.from_user.id):
             await msg.reply("Привет, администратор заведения!",
@@ -95,11 +95,12 @@ class UserClient:
             await FSMWorkProgram.main_menu.set()
 
     async def clear(self, msg: types.Message):
-        try:
-            for ii in range(msg.message_id - 1, 0, -1):
-                await bot.delete_message(msg.from_user.id, ii)
-        except Exception as ex:
-            print(ex)
+        pass
+        # try:
+        #     for ii in range(msg.message_id - 1, 0, -1):
+        #         await bot.delete_message(msg.from_user.id, ii)
+        # except Exception as ex:
+        #     print(ex)
 
     async def about_us(self, msg: types.Message) -> None:
         result = self.check_user_exist(msg=msg)

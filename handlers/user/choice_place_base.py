@@ -18,7 +18,9 @@ class BaseChoicePlace:
                           "Забронировать",
                           "Краткое описание",
                           "Контакт",
-                          "Сайт"]
+                          "Сайт",
+                          "Оставить чаевые",
+                          "Добавить в избранное"]
 
     def __init__(self, data_client: DataClient) -> None:
         self.data_client = data_client
@@ -90,11 +92,14 @@ class BaseChoicePlace:
         await FSMWorkProgram.set_review_rating.set()
 
     async def set_text_for_review(self, msg: types.Message, state: FSMContext):
-        async with state.proxy() as data:
-            data["place_rating"] = msg.text
-        await msg.answer("Введите текст для отзыва заведению.",
-                         reply_markup=create_keyboards(list(), cancel_btn=True))
-        await FSMWorkProgram.set_review_text.set()
+        if msg.text in "12345":
+            async with state.proxy() as data:
+                data["place_rating"] = msg.text
+            await msg.answer("Введите текст для отзыва заведению.",
+                             reply_markup=create_keyboards(list(), cancel_btn=True))
+            await FSMWorkProgram.set_review_text.set()
+        else:
+            await msg.answer("Выберите из предложенных вариантов.")
 
     async def save_new_review(self, msg: types.Message, state: FSMContext):
         async with state.proxy() as data:
@@ -178,6 +183,51 @@ class BaseChoicePlace:
         result = self.data_client.get_place_site(place_id=place_id)
         await msg.reply(result)
 
+    async def set_favorite_place(self, msg: types.Message, state: FSMContext):
+        async with state.proxy() as data:
+            place_id = data["place_id"]
+            result = self.data_client.set_favorite_place(user_tg_id=msg.from_user.id,
+                                                         place_id=place_id)
+            if result:
+                await msg.answer("Место добавлено в избранное!")
+            else:
+                await msg.answer("Произошла ошибка.")
+
+    async def choice_worker_for_tip(self, msg: types.Message, state: FSMContext):
+        async with state.proxy() as data:
+            result = self.data_client.get_worker_from_place_list(place_id=data["place_id"])
+            if result[0]:
+                btn = result[1]
+                await msg.answer("Выбери работника.",
+                                 reply_markup=create_keyboards(btn, back_btn=True))
+                await FSMWorkProgram.choice_worker_for_tip.set()
+            else:
+                await msg.answer("Здесь пока никто не работает")
+
+    async def set_worker_tip(self, msg: types.Message, state: FSMContext):
+        async with state.proxy() as data:
+            worker_id = self.data_client.get_worker_id(place_id=data["place_id"], name=msg.text)
+            data["worker_id"] = worker_id
+            await msg.answer("Выбери сумму для чаевых.",
+                             reply_markup=create_keyboards(["50", "100", "150"], back_btn=True))
+            await FSMWorkProgram.set_worker_tip.set()
+
+    async def check_worker_tip(self, msg: types.Message, state: FSMContext):
+        try:
+            value = int(msg.text)
+            if 50 <= value <= 200:
+                async with state.proxy() as data:
+                    result = self.data_client.set_worker_tip(worker_id=data["worker_id"],
+                                                             place_id=data["place_id"],
+                                                             value_tip=value)
+                    if result:
+                        await msg.answer("Сумма отправлена (типо).",
+                                         reply_markup=create_keyboards(self.function_for_place, cancel_btn=True))
+                    else:
+                        await msg.answer("Произошла ошибка.")
+        except Exception:
+            await msg.answer("Введена некорректная сумма, повтори.")
+
     def run_handler(self) -> None:
         dp.register_message_handler(self.choice_place,
                                     state=FSMWorkProgram.get_place)
@@ -229,4 +279,16 @@ class BaseChoicePlace:
 
         dp.register_message_handler(self.get_place_site,
                                     Text(equals="Сайт", ignore_case=True),
+                                    state=FSMWorkProgram.choice_place)
+
+        dp.register_message_handler(self.choice_worker_for_tip,
+                                    Text(equals="Оставить чаевые", ignore_case=True),
+                                    state=FSMWorkProgram.choice_place)
+        dp.register_message_handler(self.set_worker_tip,
+                                    state=FSMWorkProgram.choice_worker_for_tip)
+        dp.register_message_handler(self.check_worker_tip,
+                                    state=FSMWorkProgram.set_worker_tip)
+
+        dp.register_message_handler(self.set_favorite_place,
+                                    Text(equals="Добавить в избранное", ignore_case=True),
                                     state=FSMWorkProgram.choice_place)
